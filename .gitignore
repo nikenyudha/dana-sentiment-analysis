@@ -6,8 +6,6 @@ env/
 # Mengabaikan folder model yang berat
 indobert-sentiment-model/
 
-# Mengabaikan file data mentah jika ukurannya terlalu besar
-data/*.csv
 
 # Mengabaikan cache python
 __pycache__/
