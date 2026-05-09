@@ -16,3 +16,14 @@ Language: Python
 Libraries: Transformers (Hugging Face), PyTorch, BERTopic, Streamlit, Pandas, Scikit-learn, google play scraper
 
 Deployment: Hugging Face (Model Weights) & Streamlit Cloud
+
+## Process 
+Scraping: Mengambil data riil dari Play Store.
+
+Cleaning: Merapikan teks bahasa Indonesia yang berantakan.
+
+Modeling: Melatih IndoBERT dan BERTopic (Deep Learning).
+
+Hugging Face: Menyimpan model s di cloud.
+
+Deployment: Membuat aplikasi interaktif dengan Streamlit.
