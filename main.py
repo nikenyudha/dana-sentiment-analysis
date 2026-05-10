@@ -91,7 +91,7 @@ st.success("Dashboard Berhasil Diperbarui!")
 
 st.markdown(
     "<hr style='margin-top:50px;'>"
-    "<center style='color: gray;'>© 2026 Niken Larasati — Dana Customer Sentiment and Topic A💗</center>",
+    "<center style='color: gray;'>© 2026 Niken Larasati — Dana Customer Sentiment and Topic Analysis💗</center>",
     unsafe_allow_html=True
 )
 
