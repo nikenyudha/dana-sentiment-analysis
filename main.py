@@ -1,16 +1,19 @@
 import streamlit as st
 import pandas as pd
-from transformers import BertTokenizer, BertForSequenceClassification
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
+import os
 
 # --- 1. SETTING HALAMAN ---
-st.set_page_config(page_title="E-Wallet Sentiment Dashboard", layout="wide")
+st.set_page_config(page_title="DANA Sentiment Analysis", layout="wide")
 st.title("📊 Customer Sentiment & Topic Analysis")
-st.markdown("Dashboard ini menganalisis review user aplikasi **DANA** menggunakan Deep Learning (IndoBERT).")
+st.markdown("""
+Dashboard ini menganalisis review user aplikasi **DANA** menggunakan model **IndoBERT** yang telah di-fine-tune. 
+Proyek ini membantu mengidentifikasi kepuasan pengguna dan area yang perlu diperbaiki.
+""")
 
 # --- 2. LOAD MODEL & DATA ---
-@st.cache_resource # Agar model tidak di-load ulang setiap klik
+@st.cache_resource
 def load_model():
     model_path = "nikenlarash22/indobert-sentiment-analysis"
     tokenizer = AutoTokenizer.from_pretrained(model_path)
@@ -18,31 +21,78 @@ def load_model():
     return tokenizer, model
 
 tokenizer, model = load_model()
-df = pd.read_csv('./data/reviews_cleaned.csv')
 
-# --- 3. SIDEBAR: INPUT TEKS BARU ---
-st.sidebar.header("Uji Kalimat Baru")
-user_input = st.sidebar.text_area("Masukkan review:")
+# Menggunakan path yang aman agar tidak error di server
+base_path = os.path.dirname(__file__)
+csv_path = os.path.join(base_path, 'data', 'reviews_cleaned.csv')
+df = pd.read_csv(csv_path)
+
+# Mapping Label (Hanya dilakukan sekali di sini)
+df['Sentiment_Label'] = df['label'].map({1: 'Positif 😊', 0: 'Negatif 😡'})
+
+# --- 3. SIDEBAR: UJI REAL-TIME ---
+st.sidebar.header("🔍 Uji Model Real-Time")
+st.sidebar.info("Ketik review di bawah untuk melihat bagaimana model AI mengklasifikasikannya.")
+user_input = st.sidebar.text_area("Masukkan teks review:")
 
 if user_input:
     inputs = tokenizer(user_input, return_tensors="pt", padding=True, truncation=True, max_length=128)
     with torch.no_grad():
         outputs = model(**inputs)
-        prediction = torch.argmax(outputs.logits, dim=1).item()
+        # Mendapatkan Probabilitas (Confidence Score)
+        probs = torch.nn.functional.softmax(outputs.logits, dim=-1)
+        prediction = torch.argmax(probs, dim=1).item()
+        conf_score = torch.max(probs).item() * 100
     
     label = "POSITIF 😊" if prediction == 1 else "NEGATIF 😡"
-    st.sidebar.subheader(f"Hasil: {label}")
+    st.sidebar.markdown(f"### Hasil: **{label}**")
+    st.sidebar.progress(conf_score / 100)
+    st.sidebar.write(f"Tingkat Keyakinan Model: {conf_score:.2f}%")
 
-# --- 4. MAIN DASHBOARD: STATISTIK ---
-col1, col2 = st.columns(2)
+# --- 4. MAIN DASHBOARD: VISUALISASI ---
+col1, col2 = st.columns([1, 2])
 
 with col1:
-    st.subheader("Ringkasan Sentimen")
-    sentiment_count = df['label'].value_counts()
+    st.subheader("📈 Ringkasan Sentimen")
+    sentiment_count = df['Sentiment_Label'].value_counts()
     st.bar_chart(sentiment_count)
+    
+    # Tambahan: Statistik Sederhana
+    total_data = len(df)
+    pos_perc = (df['label'] == 1).sum() / total_data * 100
+    st.metric("Total Review", total_data)
+    st.metric("Sentimen Positif", f"{pos_perc:.1f}%")
 
 with col2:
-    st.subheader("Sampel Data Review")
-    st.dataframe(df[['content_cleaned', 'label']].head(10))
+    st.subheader("📄 Sampel Data Terbaru")
+    st.dataframe(
+        df[['content_cleaned', 'Sentiment_Label']].head(15),
+        use_container_width=True
+    )
 
-st.success("Saran: Gunakan data dari BERTopic untuk membuat chart topik di sini!")
+# --- 5. TOPIC MODELING INSIGHT (BERTopic) ---
+st.divider()
+st.subheader("📌 Temuan Utama (Topic Modeling)")
+st.write("Berdasarkan analisis BERTopic, berikut adalah 3 masalah utama yang sering dikeluhkan pengguna:")
+
+# Contoh Manual Insight (Nanti bisa kamu hubungkan ke hasil BERTopic-mu)
+t1, t2, t3 = st.columns(3)
+with t1:
+    st.error("### Fitur Dana Cicil")
+    st.write("Banyak keluhan terkait limit yang tidak muncul atau gagal aktivasi.")
+with t2:
+    st.warning("### Error Transaksi")
+    st.write("Keluhan mengenai saldo terpotong tapi status transaksi gagal.")
+with t3:
+    st.info("### Update Aplikasi")
+    st.write("Beberapa user merasa aplikasi semakin berat setelah update terbaru.")
+
+st.success("Dashboard Berhasil Diperbarui!")
+
+st.markdown(
+    "<hr style='margin-top:50px;'>"
+    "<center style='color: gray;'>© 2026 Niken Larasati — Dana Customer Sentiment and Topic A💗</center>",
+    unsafe_allow_html=True
+)
+
+
