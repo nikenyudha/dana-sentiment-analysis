@@ -70,24 +70,7 @@ with col2:
         use_container_width=True
     )
 
-# --- 5. TOPIC MODELING INSIGHT (BERTopic) ---
-st.divider()
-st.subheader("📌 Temuan Utama (Topic Modeling)")
-st.write("Berdasarkan analisis BERTopic, berikut adalah 3 masalah utama yang sering dikeluhkan pengguna:")
 
-# Contoh Manual Insight (Nanti bisa kamu hubungkan ke hasil BERTopic-mu)
-t1, t2, t3 = st.columns(3)
-with t1:
-    st.error("### Fitur Dana Cicil")
-    st.write("Banyak keluhan terkait limit yang tidak muncul atau gagal aktivasi.")
-with t2:
-    st.warning("### Error Transaksi")
-    st.write("Keluhan mengenai saldo terpotong tapi status transaksi gagal.")
-with t3:
-    st.info("### Update Aplikasi")
-    st.write("Beberapa user merasa aplikasi semakin berat setelah update terbaru.")
-
-st.success("Dashboard Berhasil Diperbarui!")
 
 st.markdown(
     "<hr style='margin-top:50px;'>"
